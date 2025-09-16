@@ -1,0 +1,512 @@
+{
+	"format_version": "1.16.0",
+	"minecraft:entity": {
+		"description": {
+			"identifier": "bot:pvp",
+			"is_spawnable": true,
+			"is_summonable": true,
+			"is_experimental": false	
+			},
+		"component_groups": {
+			"bot:steve": { 
+				"minecraft:variant": {
+					"value": 0
+				}
+			},
+			"bot:npc1": { 
+				"minecraft:variant": {
+					"value": 1
+				}
+			},
+			"bot:npc2": { 
+				"minecraft:variant": {
+					"value": 2
+				}
+			},
+			"bot:npc3": { 
+				"minecraft:variant": {
+					"value": 3
+				}
+			},
+			"bot:npc4": { 
+				"minecraft:variant": {
+					"value": 4
+				}
+			},
+			"bot:npc5": { 
+				"minecraft:variant": {
+					"value": 5
+				}
+			},
+			"bot:npc6": { 
+				"minecraft:variant": {
+					"value": 6
+				}
+			},
+			"bot:npc7": { 
+				"minecraft:variant": {
+					"value": 7
+				}
+			},
+			"bot:npc8": { 
+				"minecraft:variant": {
+					"value": 8
+				}
+			},
+			"bot:npc9": { 
+				"minecraft:variant": {
+					"value": 9
+				}
+			},
+			"bot:npc10": { 
+                "minecraft:variant": { "value": 10 }
+            },
+            "bot:npc11": { 
+                "minecraft:variant": { "value": 11 }
+            },
+            "bot:npc12": { 
+                "minecraft:variant": { "value": 12 }
+            },
+            "bot:npc13": { 
+                "minecraft:variant": { "value": 13 }
+            },
+            "bot:npc14": { 
+                "minecraft:variant": { "value": 14 }
+            },
+            "bot:npc15": { 
+                "minecraft:variant": { "value": 15 }
+            },
+            "bot:npc16": { 
+                "minecraft:variant": { "value": 16 }
+            },
+            "bot:npc17": { 
+                "minecraft:variant": { "value": 17 }
+            },
+            "bot:npc18": { 
+                "minecraft:variant": { "value": 18 }
+            },
+            "bot:npc19": { 
+                "minecraft:variant": { "value": 19 }
+            },
+            "bot:npc20": { 
+                "minecraft:variant": { "value": 20 }
+            },
+            "bot:npc21": { 
+                "minecraft:variant": { "value": 21 }
+            },
+            "bot:npc22": { 
+                "minecraft:variant": { "value": 22 }
+            },
+            "bot:npc23": { 
+                "minecraft:variant": { "value": 23 }
+            },
+            "bot:npc24": { 
+                "minecraft:variant": { "value": 24 }
+            },
+            "bot:npc25": { 
+                "minecraft:variant": { "value": 25 }
+            },
+            "bot:npc26": { 
+                "minecraft:variant": { "value": 26 }
+            },
+            "bot:npc27": { 
+                "minecraft:variant": { "value": 27 }
+            },
+            "bot:npc28": { 
+                "minecraft:variant": { "value": 28 }
+            },
+            "bot:npc29": { 
+                "minecraft:variant": { "value": 29 }
+            },
+            "bot:npc30": { 
+                "minecraft:variant": { "value": 30 }
+            },
+            "bot:npc31": { 
+                "minecraft:variant": { "value": 31 }
+            },
+            "bot:npc32": { 
+                "minecraft:variant": { "value": 32 }
+            },
+            "bot:npc33": { 
+                "minecraft:variant": { "value": 33 }
+            },
+            "bot:npc34": { 
+                "minecraft:variant": { "value": 34 }
+            },
+            "bot:npc35": { 
+                "minecraft:variant": { "value": 35 }
+            },
+            "bot:npc36": { 
+                "minecraft:variant": { "value": 36 }
+            },
+            "bot:npc37": { 
+                "minecraft:variant": { "value": 37 }
+            },
+            "bot:npc38": { 
+                "minecraft:variant": { "value": 38 }
+            },
+            "bot:npc39": { 
+                "minecraft:variant": { "value": 39 }
+            },
+            "bot:npc40": { 
+                "minecraft:variant": { "value": 40 }
+            },
+            "bot:npc41": { 
+                "minecraft:variant": { "value": 41 }
+            },
+            "bot:npc42": { 
+                "minecraft:variant": { "value": 42 }
+            },
+            "bot:npc43": { 
+                "minecraft:variant": { "value": 43 }
+            },
+            "bot:npc44": { 
+                "minecraft:variant": { "value": 44 }
+            },
+            "bot:npc45": { 
+                "minecraft:variant": { "value": 45 }
+            },
+            "bot:npc46": { 
+                "minecraft:variant": { "value": 46 }
+            },
+            "bot:npc47": { 
+                "minecraft:variant": { "value": 47 }
+            },
+            "bot:npc48": { 
+                "minecraft:variant": { "value": 48 }
+            },
+            "bot:npc49": { 
+                "minecraft:variant": { "value": 49 }
+            },
+            "bot:npc50": { 
+                "minecraft:variant": { "value": 50 }
+            },
+			"bot:dummy": {
+				"minecraft:movement": {
+					"value": 0
+				},
+				"minecraft:behavior.melee_attack": {
+					"path_fail_time_increase": 0.00001,
+					"melee_fov": 110,
+					"require_complete_path": false,
+					"priority": 2,
+					"cooldown_time": 0.10,
+					"reach_multiplier": 0
+				}
+			},
+			"bot:bow": {
+				"minecraft:behavior.ranged_attack": {
+					"priority": 0,
+					"attack_interval_min": 0.4,
+					"attack_interval_max": 1.2,
+					"attack_radius": 35,
+					"swing": true
+				},
+				"minecraft:shooter": {
+					"def": "minecraft:arrow"
+				}
+			},
+			"bot:easy": {
+				"minecraft:behavior.melee_attack": {
+					"path_fail_time_increase": 0.00001,
+					"melee_fov": 110,
+					"require_complete_path": false,
+					"priority": 2,
+					"cooldown_time": 0.10,
+					"reach_multiplier": 1.75
+				}
+			},
+			"bot:medium": {
+				"minecraft:behavior.melee_attack": {
+					"path_fail_time_increase": 0.00001,
+					"melee_fov": 110,
+					"require_complete_path": false,
+					"priority": 2,
+					"cooldown_time": 0.10,
+					"reach_multiplier": 3.5
+				}
+			},
+			"bot:hard": {
+				"minecraft:behavior.melee_attack": {
+					"path_fail_time_increase": 0.00001,
+					"melee_fov": 110,
+					"require_complete_path": false,
+					"priority": 2,
+					"cooldown_time": 0.10,
+					"reach_multiplier": 4.3
+				}
+			},
+			"bot:god": {
+				"minecraft:behavior.melee_attack": {
+					"path_fail_time_increase": 0.00001,
+					"melee_fov": 110,
+					"require_complete_path": false,
+					"priority": 2,
+					"cooldown_time": 0.10,
+					"reach_multiplier": 5.2
+				}
+			},
+			"bot:hacker": {
+				"minecraft:behavior.melee_attack": {
+					"path_fail_time_increase": 0.00001,
+					"melee_fov": 110,
+					"require_complete_path": false,
+					"priority": 2,
+					"cooldown_time": 0.10,
+					"reach_multiplier": 7
+				}
+			},
+			"bot:clutch": {
+				"minecraft:behavior.melee_attack": {
+					"path_fail_time_increase": 0.00001,
+					"melee_fov": 110,
+					"require_complete_path": false,
+					"priority": 2,
+					"cooldown_time": 0.10,
+					"reach_multiplier": 999999999
+				},
+				"minecraft:movement": {
+					"value": 0
+				},
+				"minecraft:knockback_resistance": {
+					"value": 1
+				},
+				"minecraft:pushable": {
+					"is_pushable": false,
+					"is_pushable_by_piston": false
+				}
+			},
+			"bot:reduce": {
+				"minecraft:behavior.melee_attack": {
+					"path_fail_time_increase": 0.00001,
+					"melee_fov": 110,
+					"require_complete_path": false,
+					"priority": 2,
+					"cooldown_time": 0.10,
+					"reach_multiplier": 6
+				},
+				"minecraft:movement": {
+					"value": 0
+				},
+				"minecraft:knockback_resistance": {
+					"value": 1
+				},
+				"minecraft:pushable": {
+					"is_pushable": false,
+					"is_pushable_by_piston": false
+				}
+			}	
+		},
+		"components": {
+			"minecraft:damage_sensor": {
+				"triggers": [
+				  {
+					"on_damage": {
+					  "filters": {
+						"all_of": [
+						  {
+							"test": "is_family",
+							"subject": "other",
+							"value": "lightning"
+						  }
+						]
+					  }
+					},
+					"deals_damage": false
+				  },
+				  {
+					"cause": "fall",
+					"deals_damage": false
+				  }
+				]
+			},
+			"minecraft:equip_item":{
+			},
+			"minecraft:nameable": {
+				"always_show": true
+			},
+			"minecraft:follow_range": {
+				"value": 99999
+			  },
+			"minecraft:type_family": {
+				"family": ["monster", "mob"]
+			},
+			"minecraft:movement": {
+				"value": 0.357,
+				"max_turn": 360
+			},
+			"minecraft:movement.basic": {},
+			"minecraft:navigation.walk": {
+				"avoid_damage_blocks": true,
+				"can_pass_doors": true,
+				"can_walk": true,
+				"can_jump": true,
+				"can_swim": true
+			},
+			"minecraft:jump.static": {},
+			"minecraft:can_climb": {},
+			"minecraft:health": {
+				"value": 10000000,
+				"max": 10000000
+			},
+			"minecraft:breathable": {
+				"total_supply": 15,
+				"suffocate_time": 0,
+				"breathes_air": true,
+				"breathes_water": true
+			},
+			"minecraft:collision_box": {
+				"height": 1.9,
+				"width": 0.6
+			},
+			"minecraft:scale": {
+				"value": 0.9375
+			},
+			"minecraft:attack": {
+				"damage": 1
+			},
+			"minecraft:behavior.look_at_player": {
+				"priority": 6,
+				"look_distance": 100,
+				"probability": 0.02
+			},
+			"minecraft:behavior.nearest_attackable_target": {
+				"priority": 1,
+				"must_see": false,
+				"must_reach": false,
+				"reselect_targets": true,
+				"within_radius": 1000,
+				"entity_types": [
+					{
+            			"filters": {
+              				"any_of": [
+                				{ "test": "is_family", "subject": "other", "value": "player" },
+								{ "test": "is_family", "subject": "other", "value": "treasure" },
+                				{ "test": "is_family", "subject": "other", "value": "irongolem" }
+              				]	
+            			},
+            			"max_dist": 2500
+          			}
+				]
+			},
+			"minecraft:physics": {},
+			"minecraft:pushable": {
+				"is_pushable": false,
+				"is_pushable_by_piston": false
+			},
+			"minecraft:behavior.melee_attack": {
+				"path_fail_time_increase": 0.00001,
+				"melee_fov": 110,
+				"require_complete_path": false,
+				"priority": 2,
+				"cooldown_time": 0.10,
+				"reach_multiplier": 3.90
+			},
+			 "minecraft:knockback_resistance": {
+			    "value": 0.90
+			}
+		},
+		"events": {
+			"minecraft:entity_spawned": {
+                "randomize": [
+                    { "add": { "component_groups": ["bot:steve"] } },
+                    { "add": { "component_groups": ["bot:npc1"] } },
+                    { "add": { "component_groups": ["bot:npc2"] } },
+                    { "add": { "component_groups": ["bot:npc3"] } },
+                    { "add": { "component_groups": ["bot:npc4"] } },
+                    { "add": { "component_groups": ["bot:npc5"] } },
+                    { "add": { "component_groups": ["bot:npc6"] } },
+                    { "add": { "component_groups": ["bot:npc7"] } },
+                    { "add": { "component_groups": ["bot:npc8"] } },
+                    { "add": { "component_groups": ["bot:npc9"] } },
+                    { "add": { "component_groups": ["bot:npc10"] } },
+                    { "add": { "component_groups": ["bot:npc11"] } },
+                    { "add": { "component_groups": ["bot:npc12"] } },
+                    { "add": { "component_groups": ["bot:npc13"] } },
+                    { "add": { "component_groups": ["bot:npc14"] } },
+                    { "add": { "component_groups": ["bot:npc15"] } },
+                    { "add": { "component_groups": ["bot:npc16"] } },
+                    { "add": { "component_groups": ["bot:npc17"] } },
+                    { "add": { "component_groups": ["bot:npc18"] } },
+                    { "add": { "component_groups": ["bot:npc19"] } },
+                    { "add": { "component_groups": ["bot:npc20"] } },
+                    { "add": { "component_groups": ["bot:npc21"] } },
+                    { "add": { "component_groups": ["bot:npc22"] } },
+                    { "add": { "component_groups": ["bot:npc23"] } },
+                    { "add": { "component_groups": ["bot:npc24"] } },
+                    { "add": { "component_groups": ["bot:npc25"] } },
+                    { "add": { "component_groups": ["bot:npc26"] } },
+                    { "add": { "component_groups": ["bot:npc27"] } },
+                    { "add": { "component_groups": ["bot:npc28"] } },
+                    { "add": { "component_groups": ["bot:npc29"] } },
+                    { "add": { "component_groups": ["bot:npc30"] } },
+                    { "add": { "component_groups": ["bot:npc31"] } },
+                    { "add": { "component_groups": ["bot:npc32"] } },
+                    { "add": { "component_groups": ["bot:npc33"] } },
+                    { "add": { "component_groups": ["bot:npc34"] } },
+                    { "add": { "component_groups": ["bot:npc35"] } },
+                    { "add": { "component_groups": ["bot:npc36"] } },
+                    { "add": { "component_groups": ["bot:npc37"] } },
+                    { "add": { "component_groups": ["bot:npc38"] } },
+                    { "add": { "component_groups": ["bot:npc39"] } },
+                    { "add": { "component_groups": ["bot:npc40"] } },
+                    { "add": { "component_groups": ["bot:npc41"] } },
+                    { "add": { "component_groups": ["bot:npc42"] } },
+                    { "add": { "component_groups": ["bot:npc43"] } },
+                    { "add": { "component_groups": ["bot:npc44"] } },
+                    { "add": { "component_groups": ["bot:npc45"] } },
+                    { "add": { "component_groups": ["bot:npc46"] } },
+                    { "add": { "component_groups": ["bot:npc47"] } },
+                    { "add": { "component_groups": ["bot:npc48"] } },
+                    { "add": { "component_groups": ["bot:npc49"] } },
+                    { "add": { "component_groups": ["bot:npc50"] } }
+                ]
+            },
+			"bot:dummy": {
+				"add": {
+					"component_groups": ["bot:dummy"]
+				}
+			},
+			"bot:easy": {
+				"add": {
+					"component_groups": ["bot:easy"]
+				}
+			},
+			"bot:medium": {
+				"add": {
+					"component_groups": ["bot:medium"]
+				}
+			},
+			"bot:hard": {
+				"add": {
+					"component_groups": ["bot:hard"]
+				}
+			},
+			"bot:god": {
+				"add": {
+					"component_groups": ["bot:god"]
+				}
+			},
+			"bot:hacker": {
+				"add": {
+					"component_groups": ["bot:hacker"]
+				}
+			},
+			"bot:clutch": {
+				"add": {
+					"component_groups": ["bot:clutch"]
+				}
+			},
+			"bot:reduce": {
+				"add": {
+					"component_groups": ["bot:reduce"]
+				}
+			},
+			"bot:bow": {
+				"add": {
+					"component_groups": ["bot:bow"]
+				}
+			}
+		}
+	}
+}

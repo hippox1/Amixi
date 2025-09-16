@@ -1,0 +1,41 @@
+{
+    "format_version": 2,
+    "header": {
+        "name": "Behavior Pack",
+        "description": "Do not remove",
+        "uuid": "0d105668-b81f-4709-97ea-1d787e667c4b",
+        "version": [1, 0, 0],
+        "min_engine_version": [1, 21, 90]
+    },
+    "modules": [
+        {
+            "type": "data",
+            "uuid": "2c55558a-6672-49ca-b13a-e22e112957a4",
+            "version": [1, 0, 0]
+        },
+        {
+            "type": "script",
+            "language": "javascript",
+            "uuid": "34ed76bd-e30d-4bbd-92fb-0b46af4d5a72",
+            "version": [1, 0, 0],
+            "entry": "scripts/config.js"
+        }
+    ],
+    "dependencies": [
+        {
+            "module_name": "@minecraft/server",
+            "version": "2.0.0"
+        },
+        {
+            "module_name": "@minecraft/server-ui",
+            "version": "2.0.0"
+        },
+        {
+            "module_name": "@minecraft/common",
+            "version": "1.2.0"
+        }
+    ],
+    "capabilities": [
+        "script_eval"
+    ]
+}          

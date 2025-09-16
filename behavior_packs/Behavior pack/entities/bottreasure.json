@@ -1,0 +1,42 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "bot:bottreasure",
+      "is_spawnable": true,
+      "is_summonable": true,
+      "is_experimental": false
+    },
+    "components": {
+      "minecraft:knockback_resistance": {
+			   "value": 0.90
+			},
+      "minecraft:health": {
+        "max": 1,
+        "value": 1
+      },
+      "minecraft:movement": {
+        "max": 0.0,
+        "value": 0.0
+      },
+      "minecraft:pushable": {
+        "is_pushable": false,
+        "is_pushable_by_piston": true
+      },
+      "minecraft:physics": {},
+      "minecraft:type_family": {
+        "family": [
+          "bottreasure"
+        ]
+      },
+      "minecraft:scale": {
+        "value": 1
+      },
+      "minecraft:collision_box": {
+        "height": 0.8,
+        "width": 0.8
+      },
+      "minecraft:equip_item": {}
+    }
+  }
+}
