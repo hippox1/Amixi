@@ -405,207 +405,205 @@ world.afterEvents.worldLoad.subscribe(() => {
                     });                    
                     break;
                     case 1:
-                    botduel.show(source).then(async r => {
-                        if (r.canceled || world.getPlayers().length > 1) {
-                            if (world.getPlayers().length > 1) source.sendMessage("§cBot Duel is only available in singleplayer!");
-                            return;
-                        }
-                        const gamemode = gamemodes[r.selection];
-                        const botName = botNames[Math.floor(Math.random() * botNames.length)];
-                        source.runCommand('scoreboard objectives add totalhits dummy');
-                        const diffForm = await duelbotdifficulty.show(source);
-                        if (diffForm.canceled) return;
-                        const botTypes = [
-                            { name: "Player", summon: "" },
-                            { name: "Easy", summon: "easy" },
-                            { name: "Medium", summon: "medium" },
-                            { name: "Hard", summon: "hard" },
-                            { name: "God", summon: "god" },
-                            { name: "Hacker", summon: "hacker" }
-                        ];
-                        const botType = botTypes[diffForm.selection];
+                        botduel.show(source).then(async r => {
+                            if (r.canceled || world.getPlayers().length > 1) {
+                                if (world.getPlayers().length > 1) source.sendMessage("§cBot Duel is only available in singleplayer!");
+                                return;
+                            }
+                            const gamemode = gamemodes[r.selection];
+                            const botName = botNames[Math.floor(Math.random() * botNames.length)];
+                            source.runCommand('scoreboard objectives add totalhits dummy');
 
-                        let kbTypes = gamemode === "combo" ? kbTypesCombo : kbTypesDefault;
-                        let kbForm = new ActionFormData()
-                            .title("§bDuel Knockback Settings§g§r§i§d")
-                            .body(gamemode === "combo" ? "Only Combo KB is available for Combo mode" : "Select the duel knockback settings");
-                        kbTypes.forEach((kb, i) => {
-                            kbForm.button(kb.charAt(0).toUpperCase() + kb.slice(1), `textures/jsonui/knockback/${kb}.png`);
-                        });
-                        const kbResponse = await kbForm.show(source);
-                        if (kbResponse.canceled) return;
-                        const kbTag = kbTypes[kbResponse.selection];
+                            // Select bot difficulty
+                            const diffForm = await duelbotdifficulty.show(source);
+                            if (diffForm.canceled) return;
+                            const botTypes = [
+                                { name: "Player", summon: "" },
+                                { name: "Easy", summon: "easy" },
+                                { name: "Medium", summon: "medium" },
+                                { name: "Hard", summon: "hard" },
+                                { name: "God", summon: "god" },
+                                { name: "Hacker", summon: "hacker" }
+                            ];
+                            const botType = botTypes[diffForm.selection];
 
-                        source.runCommand("clear @s");
-                        source.removeTag("hub");
-                        source.addTag("duel");
-                        kbTypes.forEach(tag => source.removeTag(tag));
-                        system.runTimeout(() => source.addTag(kbTag), 1);
+                            // Select KB type
+                            let kbTypes = gamemode === "combo" ? kbTypesCombo : kbTypesDefault;
+                            let kbForm = new ActionFormData()
+                                .title("§bDuel Knockback Settings§g§r§i§d")
+                                .body(gamemode === "combo" ? "Only Combo KB is available for Combo mode" : "Select the duel knockback settings");
+                            kbTypes.forEach(kb => kbForm.button(kb.charAt(0).toUpperCase() + kb.slice(1), `textures/jsonui/knockback/${kb}.png`));
+                            const kbResponse = await kbForm.show(source);
+                            if (kbResponse.canceled) return;
+                            const kbTag = kbTypes[kbResponse.selection];
 
-                        // --- Choose map set ---
-                        let mapSet = "normal";
-                        if (["sumo", "stickfight", "treasurewars", "skywars", "hallfight"].includes(gamemode)) mapSet = gamemode;
-                        const mapKeys = Object.keys(maps.modes[mapSet]);
-                        const randomKey = mapKeys[Math.floor(Math.random() * mapKeys.length)];
-                        const mapObj = maps.modes[mapSet][randomKey];
-                        source.onScreenDisplay.setActionBar(`§bSelected map: §f${randomKey}`);
-                        source.teleport(
-                            { x: mapObj.spawn1.x + 0.5, y: mapObj.spawn1.y, z: mapObj.spawn1.z + 0.5 },
-                            { facingLocation: { x: mapObj.spawn2.x + 0.5, y: mapObj.spawn2.y, z: mapObj.spawn2.z + 0.5 } }
-                        );
-                        source.runCommand('inputpermission set @s movement disabled');
-                        source.runCommand(`tickingarea add circle ${mapObj.center.x} ${mapObj.center.y} ${mapObj.center.z} 4 duel`);
+                            // Prepare player for duel
+                            source.runCommand("clear @s");
+                            source.removeTag("hub");
+                            source.addTag("duel");
+                            kbTypes.forEach(tag => source.removeTag(tag));
+                            system.runTimeout(() => source.addTag(kbTag), 1);
 
-                        // Countdown logic
-                        let countdown = 6;
-                        function duelCountdownTick() {
-                            delblock6x(source, mapObj.center.x, mapObj.center.y, mapObj.center.z);
-                            delblock6x(source, mapObj.spawn1.x, mapObj.spawn1.y, mapObj.spawn1.z);
-                            delblock6x(source, mapObj.spawn2.x, mapObj.spawn2.y, mapObj.spawn2.z);
-                            delblock6xfire(source, mapObj.center.x, mapObj.center.y, mapObj.center.z);
-                            delblock6xfire(source, mapObj.spawn1.x, mapObj.spawn1.y, mapObj.spawn1.z);
-                            delblock6xfire(source, mapObj.spawn2.x, mapObj.spawn2.y, mapObj.spawn2.z);
-                            countdown--;
-                            if (countdown > 0) {
-                                source.playSound("random.click");
-                                source.sendMessage(`§bMatch starting in §f${countdown}...`);
-                                source.runCommand(`tickingarea add circle ${mapObj.center.x} ${mapObj.center.y} ${mapObj.center.z} 4 duel`);
-                                if (countdown > 3) {
-                                    ["bot:pvp", "bot:treasure", "bot:bottreasure"].forEach(type => {
-                                        source.dimension.getEntities({ type }).forEach(entity => {
-                                            const dist = Math.sqrt(
-                                                Math.pow(entity.location.x - source.location.x, 2) +
-                                                Math.pow(entity.location.y - source.location.y, 2) +
-                                                Math.pow(entity.location.z - source.location.z, 2)
-                                            );
-                                            if (dist <= 100) entity.remove();
+                            // Select map
+                            let mapSet = ["sumo", "stickfight", "treasurewars", "skywars", "hallfight"].includes(gamemode) ? gamemode : "normal";
+                            const mapKeys = Object.keys(maps.modes[mapSet]);
+                            const randomKey = mapKeys[Math.floor(Math.random() * mapKeys.length)];
+                            const mapObj = maps.modes[mapSet][randomKey];
+                            source.onScreenDisplay.setActionBar(`§bSelected map: §f${randomKey}`);
+                            source.teleport(
+                                { x: mapObj.spawn1.x + 0.5, y: mapObj.spawn1.y, z: mapObj.spawn1.z + 0.5 },
+                                { facingLocation: { x: mapObj.spawn2.x + 0.5, y: mapObj.spawn2.y, z: mapObj.spawn2.z + 0.5 } }
+                            );
+                            source.runCommand('inputpermission set @s movement disabled');
+                            source.runCommand(`tickingarea add circle ${mapObj.center.x} ${mapObj.center.y} ${mapObj.center.z} 4 duel`);
+
+                            // Countdown logic
+                            let countdown = 6;
+                            const duelInterval = system.runInterval(() => {
+                                countdown--;
+                                delblock6x(source, mapObj.center.x, mapObj.center.y, mapObj.center.z);
+                                delblock6x(source, mapObj.spawn1.x, mapObj.spawn1.y, mapObj.spawn1.z);
+                                delblock6x(source, mapObj.spawn2.x, mapObj.spawn2.y, mapObj.spawn2.z);
+                                delblock6xfire(source, mapObj.center.x, mapObj.center.y, mapObj.center.z);
+                                delblock6xfire(source, mapObj.spawn1.x, mapObj.spawn1.y, mapObj.spawn1.z);
+                                delblock6xfire(source, mapObj.spawn2.x, mapObj.spawn2.y, mapObj.spawn2.z);
+
+                                if (countdown > 0) {
+                                    source.playSound("random.click");
+                                    source.sendMessage(`§bMatch starting in §f${countdown}...`);
+                                    source.runCommand(`tickingarea add circle ${mapObj.center.x} ${mapObj.center.y} ${mapObj.center.z} 4 duel`);
+                                    if (countdown > 3) {
+                                        ["bot:pvp", "bot:treasure", "bot:bottreasure"].forEach(type => {
+                                            source.dimension.getEntities({ type }).forEach(entity => {
+                                                const dist = Math.sqrt(
+                                                    Math.pow(entity.location.x - source.location.x, 2) +
+                                                    Math.pow(entity.location.y - source.location.y, 2) +
+                                                    Math.pow(entity.location.z - source.location.z, 2)
+                                                );
+                                                if (dist <= 100) entity.remove();
+                                            });
                                         });
-                                    });
-                                }
-                                system.runTimeout(duelCountdownTick, 20);
-                            } else {
-                                gamemodes.forEach(tag => source.removeTag(tag));
-                                source.addTag(gamemode);
-                                source.playSound("firework.blast");
-                                source.sendMessage(`§bOpponent: §f${botName} \n§bDifficulty: §f${botType.name} \n§f${kbTag} §bKB`);
-                                source.runCommand('inputpermission set @s movement enabled');
-                                if (["zeqasumo", "nethergames", "combo"].some(tag => source.hasTag(tag))) {
-                                    system.runTimeout(() => {
-                                        source.playSound("random.anvil_land");
-                                        source.sendMessage(`§3You are playing beta version of ${source.getTags().find(tag => ["zeqasumo", "nethergames", "combo"].includes(tag))} KB!\nBugs may occur during gameplay!`);
-                                    }, 20);
-                                }
-                                let kit = db.has(`${source.name}_${gamemode}`) ? db.get(`${source.name}_${gamemode}`) :
-                                        db.has(`default_${gamemode}`) ? db.get(`default_${gamemode}`) : [];
-                                if (!kit.length) source.sendMessage(`§cNo kit found for ${gamemode}.`);
-                                setInventory(source, kit);
-                                system.runTimeout(() => replaceBucketsForDuel(source), 2);
-                            }
-                        }
-                        duelCountdownTick();
-
-                        // Summon bot after 60 ticks
-                        system.runTimeout(() => {
-                            const summonCmd = botType.summon === "" ?
-                                `summon bot:pvp ${mapObj.spawn2.x} ${mapObj.spawn2.y} ${mapObj.spawn2.z}` :
-                                `summon bot:pvp ${mapObj.spawn2.x} ${mapObj.spawn2.y} ${mapObj.spawn2.z} ~ ~ bot:${botType.summon}`;
-                            source.runCommand(summonCmd);
-
-                            // Treasurewars extra entities
-                            if (gamemode === "treasurewars") {
-                                source.dimension.spawnEntity("bot:treasure", {
-                                    x: mapObj.treasure1.x + 0.5,
-                                    y: mapObj.treasure1.y,
-                                    z: mapObj.treasure1.z + 0.5
-                                });
-                                source.dimension.spawnEntity("bot:bottreasure", {
-                                    x: mapObj.treasure2.x + 0.5,
-                                    y: mapObj.treasure2.y,
-                                    z: mapObj.treasure2.z + 0.5
-                                });
-                            }
-
-                            // Wait 2 ticks, then find the bot and set up
-                            system.runTimeout(() => {
-                                const { botEntity } = getClosestBotEntity(source);
-                                if (!botEntity) return;
-                                botEntity.addEffect("slowness", 30, { amplifier: 255, showParticles: false });
-                                botEntity.nameTag = botName;
-                                gamemodes.forEach(tag => {
-                                    source.removeTag(tag);
-                                    botEntity.removeTag(tag);
-                                });
-                                system.runTimeout(() => {
+                                    }
+                                } else {
+                                    system.clearRun(duelInterval);
+                                    gamemodes.forEach(tag => source.removeTag(tag));
                                     source.addTag(gamemode);
-                                    botEntity.addTag(gamemode);
-                                }, 1);
-
-                                // Equip bot armor/weapons
-                                const botArmorSets = {
-                                    nodebuff:   { helmet: "diamond_helmet", chest: "diamond_chestplate", legs: "diamond_leggings", boots: "diamond_boots", weapon: "diamond_sword" },
-                                    boxing:     { helmet: null, chest: null, legs: null, boots: null, weapon: "diamond_sword" },
-                                    sumo:       { helmet: null, chest: null, legs: null, boots: null, weapon: "stick" },
-                                    midfight:   { helmet: "diamond_helmet", chest: "diamond_chestplate", legs: "diamond_leggings", boots: "diamond_boots", weapon: "diamond_sword" },
-                                    builduhc:   { helmet: "diamond_helmet", chest: "diamond_chestplate", legs: "diamond_leggings", boots: "diamond_boots", weapon: "diamond_sword" },
-                                    gapple:     { helmet: "iron_helmet", chest: "iron_chestplate", legs: "iron_leggings", boots: "iron_boots", weapon: "iron_sword" },
-                                    skywars:    { helmet: "diamond_helmet", chest: "iron_chestplate", legs: "diamond_leggings", boots: "diamond_boots", weapon: "diamond_sword" },
-                                    treasurewars:{ helmet: "chainmail_helmet", chest: "chainmail_chestplate", legs: "iron_leggings", boots: "iron_boots", weapon: "iron_sword" },
-                                    hallfight:  { helmet: "chainmail_helmet", chest: "chainmail_chestplate", legs: null, boots: null, weapon: "stone_sword" },
-                                    stickfight: { helmet: null, chest: null, legs: null, boots: null, weapon: "stick" },
-                                    combo:      { helmet: "diamond_helmet", chest: "diamond_chestplate", legs: "diamond_leggings", boots: "diamond_boots", weapon: "diamond_sword" }
-                                };
-                                const armorSet = botArmorSets[gamemode];
-                                if (armorSet) {
-                                    if (armorSet.helmet) botEntity.runCommand(`replaceitem entity @s slot.armor.head 1 ${armorSet.helmet}`);
-                                    if (armorSet.chest)  botEntity.runCommand(`replaceitem entity @s slot.armor.chest 1 ${armorSet.chest}`);
-                                    if (armorSet.legs)   botEntity.runCommand(`replaceitem entity @s slot.armor.legs 1 ${armorSet.legs}`);
-                                    if (armorSet.boots)  botEntity.runCommand(`replaceitem entity @s slot.armor.feet 1 ${armorSet.boots}`);
-                                    if (armorSet.weapon) botEntity.runCommand(`replaceitem entity @s slot.weapon.mainhand 1 ${armorSet.weapon}`);
+                                    source.playSound("firework.blast");
+                                    source.sendMessage(`§bOpponent: §f${botName} \n§bDifficulty: §f${botType.name} \n§f${kbTag} §bKB`);
+                                    source.runCommand('inputpermission set @s movement enabled');
+                                    if (["zeqasumo", "nethergames", "combo"].some(tag => source.hasTag(tag))) {
+                                        system.runTimeout(() => {
+                                            source.playSound("random.anvil_land");
+                                            source.sendMessage(`§3You are playing beta version of ${source.getTags().find(tag => ["zeqasumo", "nethergames", "combo"].includes(tag))} KB!\nBugs may occur during gameplay!`);
+                                        }, 20);
+                                    }
+                                    loadKitForPlayer(source, gamemode);
+                                    system.runTimeout(() => replaceBucketsForDuel(source), 2);
                                 }
-                                kbTypes.forEach(tag => botEntity.removeTag(tag));
-                                system.runTimeout(() => {
-                                    botEntity.addTag(kbTag);
-                                    botEntity.addTag('duel');
-                                    if (botType.summon) botEntity.addTag(botType.summon);
-                                    if (botType.name === "Player") botEntity.addTag("player");
-                                    source.runCommand('scoreboard players set @s totalhits 0');
-                                    source.runCommand(`scoreboard players set ${botName} totalhits 0`);
-                                }, 1);
+                            }, 20);
 
-                                // Effects and scoreboard setup
-                                if (gamemode === "skywars") source.addEffect("absorption", 99999, { amplifier: 0, showParticles: false });
-                                if (gamemode === "nodebuff") {
-                                    source.addEffect("speed", 99999, { amplifier: 0, showParticles: false });
-                                    botEntity.addEffect("speed", 99999, { amplifier: 0, showParticles: false });
-                                }
+                            // Summon bot after 60 ticks
+                            system.runTimeout(() => {
+                                const summonCmd = botType.summon === "" ?
+                                    `summon bot:pvp ${mapObj.spawn2.x} ${mapObj.spawn2.y} ${mapObj.spawn2.z}` :
+                                    `summon bot:pvp ${mapObj.spawn2.x} ${mapObj.spawn2.y} ${mapObj.spawn2.z} ~ ~ bot:${botType.summon}`;
+                                source.runCommand(summonCmd);
+
+                                // Treasurewars extra entities
                                 if (gamemode === "treasurewars") {
-                                    treasurewarsSpawns.set(source.name, {
-                                        source: { x: mapObj.spawn1.x + 0.5, y: mapObj.spawn1.y, z: mapObj.spawn1.z + 0.5 },
-                                        bot: { x: mapObj.spawn2.x + 0.5, y: mapObj.spawn2.y, z: mapObj.spawn2.z + 0.5 }
+                                    source.dimension.spawnEntity("bot:treasure", {
+                                        x: mapObj.treasure1.x + 0.5,
+                                        y: mapObj.treasure1.y,
+                                        z: mapObj.treasure1.z + 0.5
                                     });
-                                    source.addTag("respawn");
-                                    botEntity.addTag("respawn");
-                                    source.runCommand(`spawnpoint @s ${mapObj.spawn1.x} ${mapObj.spawn1.y} ${mapObj.spawn1.z}`);
-                                }
-                                if (["sumo", "boxing", "stickfight"].includes(gamemode)) {
-                                    source.addTag("res");
-                                    botEntity.addTag("res");
-                                }
-                                if (gamemode === "boxing") source.runCommand('scoreboard objectives setdisplay sidebar totalhits');
-                                if (["sumo", "midfight", "stickfight"].includes(gamemode)) {
-                                    duelScoreSpawns.set(source.name, {
-                                        source: { x: mapObj.spawn1.x + 0.5, y: mapObj.spawn1.y, z: mapObj.spawn1.z + 0.5 },
-                                        bot: { x: mapObj.spawn2.x + 0.5, y: mapObj.spawn2.y, z: mapObj.spawn2.z + 0.5 }
+                                    source.dimension.spawnEntity("bot:bottreasure", {
+                                        x: mapObj.treasure2.x + 0.5,
+                                        y: mapObj.treasure2.y,
+                                        z: mapObj.treasure2.z + 0.5
                                     });
-                                    source.runCommand('scoreboard objectives add duel_score dummy');
-                                    source.runCommand('scoreboard players set @s duel_score 0');
-                                    source.runCommand(`scoreboard players set ${botName} duel_score 0`);
-                                    source.runCommand('scoreboard objectives setdisplay sidebar duel_score');
                                 }
-                            }, 2);
-                        }, 60);
-                    });
-                    break;
+
+                                // Wait 2 ticks, then find the bot and set up
+                                system.runTimeout(() => {
+                                    const { botEntity } = getClosestBotEntity(source);
+                                    if (!botEntity) return;
+                                    botEntity.addEffect("slowness", 50, { amplifier: 255, showParticles: false });
+                                    botEntity.nameTag = botName;
+                                    gamemodes.forEach(tag => {
+                                        source.removeTag(tag);
+                                        botEntity.removeTag(tag);
+                                    });
+                                    system.runTimeout(() => {
+                                        source.addTag(gamemode);
+                                        botEntity.addTag(gamemode);
+                                    }, 1);
+
+                                    // Equip bot armor/weapons
+                                    const botArmorSets = {
+                                        nodebuff:   { helmet: "diamond_helmet", chest: "diamond_chestplate", legs: "diamond_leggings", boots: "diamond_boots", weapon: "diamond_sword" },
+                                        boxing:     { helmet: null, chest: null, legs: null, boots: null, weapon: "diamond_sword" },
+                                        sumo:       { helmet: null, chest: null, legs: null, boots: null, weapon: "stick" },
+                                        midfight:   { helmet: "diamond_helmet", chest: "diamond_chestplate", legs: "diamond_leggings", boots: "diamond_boots", weapon: "diamond_sword" },
+                                        builduhc:   { helmet: "diamond_helmet", chest: "diamond_chestplate", legs: "diamond_leggings", boots: "diamond_boots", weapon: "diamond_sword" },
+                                        gapple:     { helmet: "iron_helmet", chest: "iron_chestplate", legs: "iron_leggings", boots: "iron_boots", weapon: "iron_sword" },
+                                        skywars:    { helmet: "diamond_helmet", chest: "iron_chestplate", legs: "diamond_leggings", boots: "diamond_boots", weapon: "diamond_sword" },
+                                        treasurewars:{ helmet: "chainmail_helmet", chest: "chainmail_chestplate", legs: "iron_leggings", boots: "iron_boots", weapon: "iron_sword" },
+                                        hallfight:  { helmet: "chainmail_helmet", chest: "chainmail_chestplate", legs: null, boots: null, weapon: "stone_sword" },
+                                        stickfight: { helmet: null, chest: null, legs: null, boots: null, weapon: "stick" },
+                                        combo:      { helmet: "diamond_helmet", chest: "diamond_chestplate", legs: "diamond_leggings", boots: "diamond_boots", weapon: "diamond_sword" }
+                                    };
+                                    const armorSet = botArmorSets[gamemode];
+                                    if (armorSet) {
+                                        if (armorSet.helmet) botEntity.runCommand(`replaceitem entity @s slot.armor.head 1 ${armorSet.helmet}`);
+                                        if (armorSet.chest)  botEntity.runCommand(`replaceitem entity @s slot.armor.chest 1 ${armorSet.chest}`);
+                                        if (armorSet.legs)   botEntity.runCommand(`replaceitem entity @s slot.armor.legs 1 ${armorSet.legs}`);
+                                        if (armorSet.boots)  botEntity.runCommand(`replaceitem entity @s slot.armor.feet 1 ${armorSet.boots}`);
+                                        if (armorSet.weapon) botEntity.runCommand(`replaceitem entity @s slot.weapon.mainhand 1 ${armorSet.weapon}`);
+                                    }
+                                    kbTypes.forEach(tag => botEntity.removeTag(tag));
+                                    system.runTimeout(() => {
+                                        botEntity.addTag(kbTag);
+                                        botEntity.addTag('duel');
+                                        if (botType.summon) botEntity.addTag(botType.summon);
+                                        if (botType.name === "Player") botEntity.addTag("player");
+                                        source.runCommand('scoreboard players set @s totalhits 0');
+                                        source.runCommand(`scoreboard players set ${botName} totalhits 0`);
+                                    }, 1);
+
+                                    // Effects and scoreboard setup
+                                    if (gamemode === "skywars") source.addEffect("absorption", 99999, { amplifier: 0, showParticles: false });
+                                    if (gamemode === "nodebuff") {
+                                        source.addEffect("speed", 99999, { amplifier: 0, showParticles: false });
+                                        botEntity.addEffect("speed", 99999, { amplifier: 0, showParticles: false });
+                                    }
+                                    if (gamemode === "treasurewars") {
+                                        treasurewarsSpawns.set(source.name, {
+                                            source: { x: mapObj.spawn1.x + 0.5, y: mapObj.spawn1.y, z: mapObj.spawn1.z + 0.5 },
+                                            bot: { x: mapObj.spawn2.x + 0.5, y: mapObj.spawn2.y, z: mapObj.spawn2.z + 0.5 }
+                                        });
+                                        source.addTag("respawn");
+                                        botEntity.addTag("respawn");
+                                        source.runCommand(`spawnpoint @s ${mapObj.spawn1.x} ${mapObj.spawn1.y} ${mapObj.spawn1.z}`);
+                                    }
+                                    if (["sumo", "boxing", "stickfight"].includes(gamemode)) {
+                                        source.addTag("res");
+                                        botEntity.addTag("res");
+                                    }
+                                    if (gamemode === "boxing") source.runCommand('scoreboard objectives setdisplay sidebar totalhits');
+                                    if (["sumo", "midfight", "stickfight"].includes(gamemode)) {
+                                        duelScoreSpawns.set(source.name, {
+                                            source: { x: mapObj.spawn1.x + 0.5, y: mapObj.spawn1.y, z: mapObj.spawn1.z + 0.5 },
+                                            bot: { x: mapObj.spawn2.x + 0.5, y: mapObj.spawn2.y, z: mapObj.spawn2.z + 0.5 }
+                                        });
+                                        source.runCommand('scoreboard objectives add duel_score dummy');
+                                        source.runCommand('scoreboard players set @s duel_score 0');
+                                        source.runCommand(`scoreboard players set ${botName} duel_score 0`);
+                                        source.runCommand('scoreboard objectives setdisplay sidebar duel_score');
+                                    }
+                                }, 2);
+                            }, 60);
+                        });
+                        break;
                     case 2: // Shop (now Cosmetic Collection)
                     const cosmeticCollection = new ActionFormData()
                         .title("§bCosmetic Collection§g§r§i§d")
@@ -790,17 +788,7 @@ world.afterEvents.worldLoad.subscribe(() => {
                             if (r.selection >= 0 && r.selection < gamemodes.length) {
                                 source.addTag(gamemodes[r.selection]);
                                 // Load kit based on gamemode
-                                let kit;
-                                if (db.has(`${source.name}_${gamemodes[r.selection]}`)) {
-                                    kit = db.get(`${source.name}_${gamemodes[r.selection]}`);
-                                    source.sendMessage(`§aYour kit for ${gamemodes[r.selection]} loaded!`);
-                                } else if (db.has(`default_${gamemodes[r.selection]}`)) {
-                                    kit = db.get(`default_${gamemodes[r.selection]}`);
-                                    source.sendMessage(`§aDefault kit for ${gamemodes[r.selection]} loaded!`);
-                                } else {
-                                    source.sendMessage(`§cNo kit found for ${gamemodes[r.selection]}.`);
-                                }
-                                setInventory(source, kit);
+                                loadKitForPlayer(source, gamemodes[r.selection]);
                             }
                         })
                     break;
@@ -1087,7 +1075,7 @@ world.afterEvents.worldLoad.subscribe(() => {
                 db.set(`default_${gamemode}`, items);
                 source.sendMessage(`§aDefault kit for ${gamemode} saved!`);
             } else {
-                db.set(`${source.name}_${gamemode}`, items);
+                db.set(`${sanitizeKey(source.name)}_${gamemode}`, items);
                 source.sendMessage(`§aYour kit for ${gamemode} saved!`);
             }
             system.runTimeout(() => source.runCommand('clear @s'), 1);
@@ -1102,24 +1090,13 @@ world.afterEvents.worldLoad.subscribe(() => {
 
         // --- Load kit ---
         if (action === "load") {
-            let kit;
-            if (db.has(`${source.name}_${gamemode}`)) {
-                kit = db.get(`${source.name}_${gamemode}`);
-                source.sendMessage(`§aYour kit for ${gamemode} loaded!`);
-            } else if (db.has(`default_${gamemode}`)) {
-                kit = db.get(`default_${gamemode}`);
-                source.sendMessage(`§aDefault kit for ${gamemode} loaded!`);
-            } else {
-                source.sendMessage(`§cNo kit found for ${gamemode}.`);
-                return;
-            }
-            setInventory(source, kit);
+            loadKitForPlayer(source, gamemode);
             return;
         }
 
         // --- Delete kit ---
         if (action === "delete") {
-            const key = `${source.name}_${gamemode}`;
+            const key = `${sanitizeKey(source.name)}_${gamemode}`;
             if (db.has(key)) {
                 db.delete(key);
                 source.sendMessage(`§aYour kit for ${gamemode} has been deleted!`);
@@ -1388,149 +1365,143 @@ world.afterEvents.worldLoad.subscribe(() => {
         const { hurtEntity, damageSource, damage } = data;
         const EPSILON = 1e-10; // Small value to compare floating point numbers
         if (damageSource.damagingEntity === undefined || hurtEntity === undefined || hurtEntity.typeId === "bot:bottreasure" || hurtEntity.typeId === "bot:treasure") return;
-        let source
-        if (damageSource.damagingEntity && damageSource.damagingEntity.typeId === "minecraft:player") {
-            source = damageSource.damagingEntity;
-        }
-        if (hurtEntity && hurtEntity.typeId === "minecraft:player") {
-            source = hurtEntity;
-        }
-        if (source && source.hasTag('duel')) {
-            let gamemode = null;
-            for (const mode in duelGamemodeMaxHits) {
-                if (hurtEntity.hasTag(mode)) {
-                    gamemode = mode;
-                }
-            }
-            if (gamemode !== "treasurewars") {
-                source.runCommand(`spawnpoint @s ${source.location.x} ${source.location.y} ${source.location.z}`);
-            }
-            const { minDist, botEntity, botName } = getClosestBotEntity(source);
-            if (!botEntity || !botName) return;
-            const random = Math.floor(Math.random() * 100);
-            if (hurtEntity.typeId === "bot:pvp") {
-                if (source.hasTag('zeqasumo') || source.hasTag('nethergames') || source.hasTag('combo')) {
-                    if (Math.abs(damage - 0.00000000001) < EPSILON) {
-                        source.runCommand(`scoreboard players add @s totalhits 1`);
-                    } 
-                } else {
-                    if (damage > 0) {
-                        source.runCommand(`scoreboard players add @s totalhits 1`);
+        for (const source of world.getPlayers()) {
+            if (source && source.hasTag('duel')) {
+                let gamemode = null;
+                for (const mode in duelGamemodeMaxHits) {
+                    if (hurtEntity.hasTag(mode)) {
+                        gamemode = mode;
                     }
                 }
-            }
-            if (damageSource.damagingEntity.typeId === "bot:pvp" && hurtEntity.typeId === "minecraft:player" && hurtEntity.hasTag("boxing")) {
-                if (source.hasTag('zeqasumo') || source.hasTag('nethergames')) {
-                    if (Math.abs(damage - 0.00000000001) < EPSILON) {
+                if (gamemode !== "treasurewars") {
+                    source.runCommand(`spawnpoint @s ${source.location.x} ${source.location.y} ${source.location.z}`);
+                }
+                const { minDist, botEntity, botName } = getClosestBotEntity(source);
+                if (!botEntity || !botName) return;
+                const random = Math.floor(Math.random() * 100);
+                if (hurtEntity.typeId === "bot:pvp" && damageSource.damagingEntity.typeId === "minecraft:player") {
+                    if (source.hasTag('zeqasumo') || source.hasTag('nethergames') || source.hasTag('combo')) {
+                        const heldItem = source.getComponent("minecraft:inventory").container.getItem(source.selectedSlotIndex)
+                        if (!heldItem || !swordAndPickaxeIds.includes(heldItem.typeId)) return; // Only count if holding sword or pickaxe
+                        if (Math.abs(damage - 0.00000000001) < EPSILON) {
+                            source.runCommand(`scoreboard players add @s totalhits 1`);
+                        } 
+                    } else {
+                        if (damage > 0) {
+                            source.runCommand(`scoreboard players add @s totalhits 1`);
+                        }
+                    }
+                }
+                if (damageSource.damagingEntity.typeId === "bot:pvp" && hurtEntity.typeId === "minecraft:player" && hurtEntity.hasTag("boxing")) {
+                    if (source.hasTag('zeqasumo') || source.hasTag('nethergames')) {
+                        if (Math.abs(damage - 0.00000000001) < EPSILON) {
+                            damageSource.damagingEntity.runCommand(`scoreboard players add "${botName}" totalhits 1`);
+                        }
+                    } else {
                         damageSource.damagingEntity.runCommand(`scoreboard players add "${botName}" totalhits 1`);
                     }
-                } else {
-                    damageSource.damagingEntity.runCommand(`scoreboard players add "${botName}" totalhits 1`);
                 }
-            }
-            if (!gamemode) return;
-            // Get current score
-            let scorebot = world.scoreboard.getObjective("totalhits").getScore(botName);
-            let scoreplayer = world.scoreboard.getObjective("totalhits").getScore(source);
-            //logic bot
-            if (scoreplayer > 0) {
-                // Helper for "zeqasumo" and "nethergames" damage check
-                const isSpecialKB = source.hasTag('zeqasumo') || source.hasTag('nethergames');
-                const isPlayer = damageSource.damagingEntity.typeId === "minecraft:player";
+                if (!gamemode) return;
+                // Get current score
+                let scorebot = world.scoreboard.getObjective("totalhits").getScore(botName);
+                let scoreplayer = world.scoreboard.getObjective("totalhits").getScore(source);
+                //logic bot
+                if (scoreplayer > 0) {
+                    // Helper for "zeqasumo" and "nethergames" damage check
+                    const isSpecialKB = source.hasTag('zeqasumo') || source.hasTag('nethergames');
+                    const isPlayer = damageSource.damagingEntity.typeId === "minecraft:player";
 
-                switch (gamemode) {
-                    case "nodebuff":
-                        if (scoreplayer % 7 === 0 && scoreplayer !== 119 && isPlayer) {
-                            if (isSpecialKB ? Math.abs(damage - 0.00000000001) < EPSILON : damage > 0) {
+                    // Helper for gapple eating logic
+                    function shouldEatGapple(score, mod, max, isPlayer, isSpecialKB, damage) {
+                        return score % mod === 0 && score !== max && isPlayer && (isSpecialKB ? Math.abs(damage - 0.00000000001) < EPSILON : damage > 0);
+                    }
+
+                    switch (gamemode) {
+                        case "nodebuff":
+                            if (shouldEatGapple(scoreplayer, 7, 119, isPlayer, isSpecialKB, damage)) {
                                 potting(source, botEntity);
                             }
-                        }
-                        if (random <= 20 && !botEntity.hasTag('pearl')) botpearl(source, botEntity);
-                        break;
+                            if (random <= 10 && !botEntity.hasTag('pearl')) botpearl(source, botEntity);
+                            break;
 
-                    case "midfight":
-                        const obj = world.scoreboard.getObjective("duel_score");
-                        if (!obj) return;
-                        if (scoreplayer >= duelGamemodeMaxHits[gamemode]) {
-                            source.runCommand('scoreboard players set @s totalhits 0');
-                            source.runCommand(`scoreboard players add @s duel_score 1`);
-                            increaseDuelScore(source, botEntity);
-                        }
-                        break;
+                        case "midfight":
+                            const obj = world.scoreboard.getObjective("duel_score");
+                            if (!obj) return;
+                            if (scoreplayer >= duelGamemodeMaxHits[gamemode]) {
+                                source.runCommand('scoreboard players set @s totalhits 0');
+                                source.runCommand(`scoreboard players add @s duel_score 1`);
+                                increaseDuelScore(source, botEntity);
+                            }
+                            break;
 
-                    case "builduhc":
-                        if (isPlayer) {
-                            if (random >= 70 && random <= 80) placeBlocksBetweenSourceAndBot(source, botEntity);
-                            if (scoreplayer % 8 === 0 && scoreplayer !== 48 && isPlayer) {
-                                if (isSpecialKB ? Math.abs(damage - 0.00000000001) < EPSILON : damage > 0) {
+                        case "builduhc":
+                            if (isPlayer) {
+                                if (random >= 70 && random <= 77) placeBlocksBetweenSourceAndBot(source, botEntity);
+                                if (shouldEatGapple(scoreplayer, 8, 48, isPlayer, isSpecialKB, damage)) {
                                     boteatsgapple(source, botEntity);
                                 }
                             }
-                        }
-                        if (random <= 5) setFireAtSource(source, botEntity);
-                        if (random >= 32 && random <= 40) botrod(source, botEntity);
-                        break;
+                            if (random <= 5) setFireAtSource(source, botEntity);
+                            if (random >= 32 && random <= 40) botrod(source, botEntity);
+                            break;
 
-                    case "gapple":
-                        if (scoreplayer % 7 === 0 && scoreplayer !== 28 && isPlayer) {
-                            if (isSpecialKB ? Math.abs(damage - 0.00000000001) < EPSILON : damage > 0) {
+                        case "gapple":
+                            if (shouldEatGapple(scoreplayer, 7, 28, isPlayer, isSpecialKB, damage)) {
                                 boteatsgapple(source, botEntity);
                             }
-                        }
-                        break;
+                            break;
 
-                    case "skywars":
-                        if (scoreplayer === 10 && isPlayer) {
-                            if (isSpecialKB ? Math.abs(damage - 0.00000000001) < EPSILON : damage > 0) {
+                        case "skywars":
+                            if (scoreplayer === 10 && isPlayer && (isSpecialKB ? Math.abs(damage - 0.00000000001) < EPSILON : damage > 0)) {
                                 boteatsgapple(source, botEntity);
                             }
-                        }
-                        if (isPlayer && random >= 25 && random <= 40) placeBlocksBetweenSourceAndBot(source, botEntity);
-                        if (random <= 5) { botEntity.addTag('pearl'); botpearl(source, botEntity); }
-                        if (random >= 10 && random <= 15) keepBlockUnderBotEntity(source, botEntity);
-                        break;
+                            if (isPlayer && random >= 25 && random <= 30) placeBlocksBetweenSourceAndBot(source, botEntity);
+                            if (random <= 3) { botEntity.addTag('pearl'); botpearl(source, botEntity); }
+                            if (random >= 10 && random <= 16) keepBlockUnderBotEntity(source, botEntity);
+                            break;
 
-                    case "treasurewars":
-                        const spawnpos = treasurewarsSpawns.get(source.name).bot;
-                        if (scoreplayer >= duelGamemodeMaxHits[gamemode]) {
-                            if (botEntity.hasTag('respawn')) {
-                                source.playSound('random.orb');
-                                botEntity.teleport(spawnpos);
-                                source.runCommand('scoreboard players set @s totalhits 0');
-                            } else {
-                                handlePlayerWin(source, botEntity, gamemode);
+                        case "treasurewars":
+                            const spawnpos = treasurewarsSpawns.get(source.name).bot;
+                            if (scoreplayer >= duelGamemodeMaxHits[gamemode]) {
+                                if (botEntity.hasTag('respawn')) {
+                                    source.playSound('random.orb');
+                                    botEntity.teleport(spawnpos);
+                                    source.runCommand('scoreboard players set @s totalhits 0');
+                                } else {
+                                    handlePlayerWin(source, botEntity, gamemode);
+                                }
                             }
-                        }
-                        if (isPlayer) {
-                            if (random <= 5) keepBlockUnderBotEntity(source, botEntity);
-                            if (random >= 26 && random <= 30) placeBlocksBetweenSourceAndBot(source, botEntity);
-                        }
-                        break;
+                            if (isPlayer) {
+                                if (random <= 5) keepBlockUnderBotEntity(source, botEntity);
+                                if (random >= 26 && random <= 30) placeBlocksBetweenSourceAndBot(source, botEntity);
+                            }
+                            break;
 
-                    case "hallfight":
-                        if (isPlayer && random <= 15) placeBlocksBetweenSourceAndBot(source, botEntity);
-                        break;
+                        case "hallfight":
+                            if (isPlayer && random <= 10) placeBlocksBetweenSourceAndBot(source, botEntity);
+                            break;
 
-                    case "stickfight":
-                        if (isPlayer && random <= 20) placeBlocksBetweenSourceAndBot(source, botEntity);
-                        if (isPlayer && random >= 30 && random <= 40) keepBlockUnderBotEntity(source, botEntity);
-                        break;
+                        case "stickfight":
+                            if (isPlayer && random <= 10) placeBlocksBetweenSourceAndBot(source, botEntity);
+                            if (isPlayer && random >= 30 && random <= 40) keepBlockUnderBotEntity(source, botEntity);
+                            break;
 
-                    case "combo":
-                        if (scoreplayer % 30 === 0 && scoreplayer !== 180 && isPlayer && Math.abs(damage - 0.00000000001) < EPSILON) {
-                            boteatsgapple(source, botEntity);
-                        }
-                        break;
-                }
-
-                // Universal win checks (except midfight and treasurewars)
-                if (gamemode !== "midfight" && gamemode !== "treasurewars") {
-                    if (gamemode === "boxing" && scorebot >= duelGamemodeMaxHits[gamemode]) {
-                        source.runCommand('gamemode spectator @s');
-                        handleBotWin(source, botEntity, botName, gamemode);
+                        case "combo":
+                            if (scoreplayer % 30 === 0 && scoreplayer !== 180 && isPlayer && Math.abs(damage - 0.00000000001) < EPSILON) {
+                                boteatsgapple(source, botEntity);
+                            }
+                            break;
                     }
-                    if (scoreplayer >= duelGamemodeMaxHits[gamemode]) {
-                        handlePlayerWin(source, botEntity, gamemode);
+
+                    // Universal win checks (except midfight and treasurewars)
+                    if (gamemode !== "midfight" && gamemode !== "treasurewars") {
+                        if (gamemode === "boxing" && scorebot >= duelGamemodeMaxHits[gamemode]) {
+                            source.runCommand('gamemode spectator @s');
+                            handleBotWin(source, botEntity, botName, gamemode);
+                        }
+                        if (scoreplayer >= duelGamemodeMaxHits[gamemode]) {
+                            handlePlayerWin(source, botEntity, gamemode);
+                        }
                     }
                 }
             }
@@ -1568,16 +1539,7 @@ world.afterEvents.worldLoad.subscribe(() => {
                                     deadEntity.playSound('random.orb');
                                     deadEntity.runCommand('clear @s');
                                     system.runTimeout(() => {
-                                        let kit;
-                                        if (db.has(`${deadEntity.name}_${mode}`)) {
-                                            kit = db.get(`${deadEntity.name}_${mode}`);
-                                        } else if (db.has(`default_${mode}`)) {
-                                            kit = db.get(`default_${mode}`);
-                                        } else {
-                                            deadEntity.sendMessage(`§cNo kit found for ${mode}.`);
-                                            kit = [];
-                                        }
-                                        setInventory(deadEntity, kit);
+                                        loadKitForPlayer(deadEntity, mode);
                                     }, 1);
                                 }, 6);
                             }
@@ -1596,17 +1558,21 @@ world.afterEvents.worldLoad.subscribe(() => {
                     source.spawnParticle("minecraft:huge_explosion_emitter", {x: deadEntity.location.x, y: deadEntity.location.y, z: deadEntity.location.z});
                     source.playSound('random.explode');
                     botEntity.removeTag('respawn');
-                    deadEntity.remove();
+                    system.runTimeout(() => {
+                        deadEntity.remove();
+                    }, 18);
                 }
                 if (deadEntity.typeId === "bot:treasure") {
                     source.sendMessage(`§3Your treasure §bhas been destroyed!`);
                     source.spawnParticle("minecraft:huge_explosion_emitter", {x: deadEntity.location.x, y: deadEntity.location.y, z: deadEntity.location.z});
                     source.playSound('random.explode');
                     source.removeTag('respawn');
-                    deadEntity.remove();
                     source.runCommand('title @s title §cTreasure Destroyed!');
                     source.runCommand('title @s subtitle You can no longer respawn!');
                     source.playSound('mob.enderdragon.growl');
+                    system.runTimeout(() => {
+                        deadEntity.remove();
+                    }, 18);
                 }
             }
         }
@@ -1743,10 +1709,7 @@ system.runInterval(() => {
                                 source.addEffect("instant_health", 2, { amplifier: 255, showParticles: false });
                                 source.runCommand('clear @s');
                                 system.runTimeout(() => {
-                                    let kit = db.has(`${source.name}_${mode}`) ? db.get(`${source.name}_${mode}`) :
-                                              db.has(`default_${mode}`) ? db.get(`default_${mode}`) : [];
-                                    if (!kit.length) source.sendMessage(`§cNo kit found for ${mode}.`);
-                                    setInventory(source, kit);
+                                    loadKitForPlayer(source, mode);
                                 }, 1);
                             } else {
                                 handleBotWin(source, botEntity, botName, mode);
@@ -1877,6 +1840,13 @@ system.runInterval(() => {
 
 //all functions and stuff
 function reset(source) {
+    playerFFABlocks.delete(source);
+    treasurewarsSpawns.delete(source.name);
+    rightClicks.delete(source);
+    clicks.delete(source);
+    lastTrailPosition.delete(source.name);
+    fireloc.delete(source.name);
+    duelScoreSpawns.delete(source.name);
     const tags = [
             'speedbridge1', 'speedbridge2', 'speedbridge3',
             'speedbridge4', 'speedbridge5', 'speedbridge6'
@@ -3265,14 +3235,20 @@ const messages = [
 "PvP eternal"
 ]
 
-let hori = 0
-let verti = 0
-let height = 0;
-let adjust = 0; //smaller -> kb further
-let multiply = 0
-let adjusthori = 0
-let adjustverti = 0
-let ground = 0
+const swordAndPickaxeIds = [
+    "minecraft:wooden_sword",
+    "minecraft:stone_sword",
+    "minecraft:iron_sword",
+    "minecraft:golden_sword",
+    "minecraft:diamond_sword",
+    "minecraft:netherite_sword",
+    "minecraft:wooden_pickaxe",
+    "minecraft:stone_pickaxe",
+    "minecraft:iron_pickaxe",
+    "minecraft:golden_pickaxe",
+    "minecraft:diamond_pickaxe",
+    "minecraft:netherite_pickaxe"
+];
 
 const db = new QIDB("kits");
 
@@ -3988,16 +3964,7 @@ function increaseDuelScore(source, botEntity) {
                     source.runCommand('inputpermission set @s movement enabled');
                     source.playSound('firework.blast');
                     source.addTag('duel');
-                    let kit;
-                    if (db.has(`${source.name}_${mode}`)) {
-                        kit = db.get(`${source.name}_${mode}`);
-                    } else if (db.has(`default_${mode}`)) {
-                        kit = db.get(`default_${mode}`);
-                    } else {
-                        source.sendMessage(`§cNo kit found for ${mode}.`);
-                        kit = [];
-                    }
-                    setInventory(source, kit);
+                    loadKitForPlayer(source, mode);
                 }
             }, 20);
         }
@@ -4012,6 +3979,20 @@ function increaseDuelScore(source, botEntity) {
         duelScoreSpawns.delete(source.name);
         try { world.scoreboard.removeObjective(`duel_score`); } catch {}
     }
+}
+
+function sanitizeKey(str) {
+    return String(str).replace(/[^A-Za-z0-9_]/g, "_");
+}
+
+function loadKitForPlayer(source, gamemode) {
+    let kit = [];
+    if (db.has(`${sanitizeKey(source.name)}_${gamemode}`)) {
+        kit = db.get(`${sanitizeKey(source.name)}_${gamemode}`);
+    } else if (db.has(`default_${gamemode}`)) {
+        kit = db.get(`default_${gamemode}`);
+    }
+    setInventory(source, kit);
 }
 
 
